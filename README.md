@@ -47,7 +47,7 @@ pip install oracledb
 - Acesso ao banco com:  
   ```
   usuário: labdatabase
-  senha: labdatabase
+  senha: lab@Database2025
   DSN: localhost/XEPDB1
   ```
 - Cliente Oracle como **DBeaver** (opcional)
