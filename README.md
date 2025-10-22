@@ -145,7 +145,5 @@ git push origin feature/nova-funcionalidade
 
 ---
 
-## 📄 Licença
-
-Este projeto é para fins **educacionais** e não possui licença específica. Use por sua conta e risco
+* e não possui licença específica. Use por sua conta e risco
 ```
