@@ -1,0 +1,73 @@
+from connection import OracleConnection
+
+def criar_tabelas_e_dados():
+    db = OracleConnection()
+    db.connect()
+
+    comandos = [
+        # Remove tabelas antigas
+        "BEGIN EXECUTE IMMEDIATE 'DROP TABLE TAREFAS CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;",
+        "BEGIN EXECUTE IMMEDIATE 'DROP TABLE USUARIOS CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN NULL; END;",
+        "BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE USUARIOS_SEQ'; EXCEPTION WHEN OTHERS THEN NULL; END;",
+        "BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE TAREFAS_SEQ'; EXCEPTION WHEN OTHERS THEN NULL; END;",
+
+        # Criação das tabelas
+        """CREATE TABLE USUARIOS (
+            ID_USUARIO NUMBER PRIMARY KEY,
+            NOME VARCHAR2(100) NOT NULL,
+            EMAIL VARCHAR2(100) UNIQUE NOT NULL
+        )""",
+        """CREATE TABLE TAREFAS (
+            ID_TAREFA NUMBER PRIMARY KEY,
+            TITULO VARCHAR2(100) NOT NULL,
+            DESCRICAO VARCHAR2(500),
+            DATA_CRIACAO DATE DEFAULT SYSDATE NOT NULL,
+            DATA_LIMITE DATE,
+            STATUS VARCHAR2(20) DEFAULT 'Pendente',
+            ID_USUARIO NUMBER NOT NULL,
+            CONSTRAINT FK_TAREFAS_USUARIOS FOREIGN KEY (ID_USUARIO)
+                REFERENCES USUARIOS (ID_USUARIO)
+        )""",
+
+        # Sequências
+        "CREATE SEQUENCE USUARIOS_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE",
+        "CREATE SEQUENCE TAREFAS_SEQ START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE",
+
+        # Triggers
+        """CREATE OR REPLACE TRIGGER TRG_USUARIOS_ID
+        BEFORE INSERT ON USUARIOS
+        FOR EACH ROW
+        BEGIN
+            IF :NEW.ID_USUARIO IS NULL THEN
+                SELECT USUARIOS_SEQ.NEXTVAL INTO :NEW.ID_USUARIO FROM DUAL;
+            END IF;
+        END;""",
+
+        """CREATE OR REPLACE TRIGGER TRG_TAREFAS_ID
+        BEFORE INSERT ON TAREFAS
+        FOR EACH ROW
+        BEGIN
+            IF :NEW.ID_TAREFA IS NULL THEN
+                SELECT TAREFAS_SEQ.NEXTVAL INTO :NEW.ID_TAREFA FROM DUAL;
+            END IF;
+        END;""",
+
+        # Inserção de dados
+        "INSERT INTO USUARIOS (NOME, EMAIL) VALUES ('Renan Miguel', 'renan@email.com')",
+        "INSERT INTO USUARIOS (NOME, EMAIL) VALUES ('João Silva', 'joao@email.com')",
+        """INSERT INTO TAREFAS (TITULO, DESCRICAO, DATA_LIMITE, STATUS, ID_USUARIO)
+           VALUES ('Estudar Oracle', 'Aprender comandos SQL', TO_DATE('2025-10-16','YYYY-MM-DD'), 'Pendente', 1)""",
+        """INSERT INTO TAREFAS (TITULO, DESCRICAO, DATA_LIMITE, STATUS, ID_USUARIO)
+           VALUES ('Fazer trabalho da faculdade', 'Implementar CRUD no Oracle', TO_DATE('2025-10-21','YYYY-MM-DD'), 'Em andamento', 1)""",
+        """INSERT INTO TAREFAS (TITULO, DESCRICAO, DATA_LIMITE, STATUS, ID_USUARIO)
+           VALUES ('Enviar relatório', 'Entregar relatório semanal', TO_DATE('2025-10-12','YYYY-MM-DD'), 'Concluída', 2)"""
+    ]
+
+    for c in comandos:
+        db.execute(c)
+
+    print("✅ Tabelas e dados criados com sucesso!")
+    db.disconnect()
+
+if __name__ == "__main__":
+    criar_tabelas_e_dados()
